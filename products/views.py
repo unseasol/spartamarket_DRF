@@ -1,19 +1,27 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Product
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from .models import Product
+from .serializers import ProductSerializer
 
 # Create your views here.
 class ProductListView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
     def post(self, request):
         title = request.data.get("title")
         content = request.data.get("content")
         image = request.data.get("image")
-        
         product = Product.objects.create(
             title = title,
             content = content,
             image = image,
         )
-        
-        return Response()
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
+    
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
